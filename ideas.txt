@@ -3,8 +3,17 @@
     Teachers -> Assignment !-> Student -> (Deadline)? -> End -> Teachers
 
 Commands
-/join
-/create
-/submit
-/assign
-/list
+/join-class -> input code / link
+
+/create-assign -> lesson? -> name -> file/text -> start-end date -> grade?
+/create-class -> name -> description -> code
+/create-lesson -> name -> description
+/create-grade -> select -> grade|return -> repeat?
+
+/submit-assign -> select -> send -> wait -> notif
+
+/list-klass
+/list-assign
+/list-lesson
+
+
