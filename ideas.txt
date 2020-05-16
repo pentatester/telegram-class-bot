@@ -1,0 +1,10 @@
+1. Class
+    Create class by Teacher
+    Teachers -> Assignment !-> Student -> (Deadline)? -> End -> Teachers
+
+Commands
+/join
+/create
+/submit
+/assign
+/list
