@@ -24,9 +24,11 @@ class Klass(base):
     name = Column(String)
 
     # OneToMany
-    teacher = relationship("User")
-    student = relationship("User")
-    assign = relationship("Assign")
+    admins = relationship("User", secondary="user_klass")
+    students = relationship("User", secondary="user_klass")
+
+    #
+    assign = relationship("Assign", passive_deletes="all")
     created_at = Column(DateTime, server_default=func.now(), nullable=False)
     updated_at = Column(
         DateTime, server_default=func.now(), onupdate=func.now(), nullable=False

@@ -46,18 +46,15 @@ class User(base):
     # Chat logic
     expected_input = Column(String)
 
-    # Simple foreign key
-    current_poll_id = Column(
-        BigInteger,
-        ForeignKey("poll.id", ondelete="set null", name="current_poll"),
-        index=True,
-    )
-    current_poll = relationship(
-        "Poll", uselist=False, foreign_keys="User.current_poll_id", post_update=True
-    )
+    # One to many
+    assign_grade = relationship("AssignGrade")
+    # Gradings 
+    gradings = relationship("AssignGrade", back_populates="grader")
+    # Grades
+    grades = relationship("AssignGrade", back_populates="user")
 
-    # OneToMany
-    votes = relationship("Quizz")
+    # Many to many
+    klasses = relationship("Klass", secondary="user_klass")
 
     def __init__(self, user_id, username):
         """Create a new user."""
@@ -68,3 +65,20 @@ class User(base):
     def __repr__(self):
         """Print as string."""
         return f"User with Id: {self.id}, name: {self.name}, locale: {self.locale}"
+
+
+class UserKlassLink(base):
+    # user to klass links
+    __tablename__ = "user_klass"
+    # if klass deleted  -> delete link!
+    klass_id = Column(
+        BigInteger,
+        ForeignKey("klass.id", ondelete="cascade", name="klass"),
+        primary_key=True,
+    )
+    # if user deleted  -> delete link!
+    user_id = Column(
+        BigInteger,
+        ForeignKey("user.id", ondelete="cascade", name="user"),
+        primary_key=True,
+    )

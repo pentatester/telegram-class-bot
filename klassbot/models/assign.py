@@ -57,21 +57,27 @@ class AssignGrade(base):
         "Assign", foreign_keys="AssignGrade.assign_id", back_populates="grade"
     )
 
+    # student id
     user_id = Column(
         BigInteger,
         ForeignKey("user.id", ondelete="cascade", name="user"),
         nullable=False,
         index=True,
     )
-    user = relationship("User", foreign_keys="AssignGrade.user_id")
+    user = relationship(
+        "User", foreign_keys="AssignGrade.user_id", back_populates="grades"
+    )
 
+    # 1 grader
     grader_id = Column(
         BigInteger,
         ForeignKey("user.id", ondelete="cascade", name="user"),
         nullable=False,
         index=True,
     )
-    grader = relationship("User", foreign_keys="AssignGrade.grader_id")
+    grader = relationship(
+        "User", foreign_keys="AssignGrade.grader_id", back_populates="gradings"
+    )
 
     # Grading
     grade = Column(BigInteger)
