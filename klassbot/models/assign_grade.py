@@ -8,6 +8,7 @@ from sqlalchemy import (
 from sqlalchemy.types import (
     BigInteger,
     DateTime,
+    Integer,
     String,
 )
 from sqlalchemy.orm import relationship
@@ -56,7 +57,7 @@ class AssignGrade(base):
     )
 
     # Grading
-    grade = Column(BigInteger)
+    grade = Column(Integer)
 
     # Date
     created_at = Column(DateTime, server_default=func.now(), nullable=False)
