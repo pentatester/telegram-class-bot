@@ -48,22 +48,10 @@ class User(base):
     # Chat logic
     expected_input = Column(String)
 
-    # One to many
-    assign_grade = relationship("AssignGrade")
-    # Gradings
-    gradings = relationship("AssignGrade", back_populates="grader")
-    # Grades
-    grades = relationship("AssignGrade", back_populates="user")
+    # User type
+    type = Column(str)
 
-    # Many to many
-    klasses = relationship("Klass", secondary="user_klass")
-
-    def __init__(self, user_id, username):
-        """Create a new user."""
-        self.id = user_id
-        if username is not None:
-            self.username = username.lower()
-
-    def __repr__(self):
-        """Print as string."""
-        return f"User with Id: {self.id}, name: {self.name}"
+    __mapper_args__ = {
+        "polymorphic_identity": "employee",
+        "polymorphic_on": type,
+    }
