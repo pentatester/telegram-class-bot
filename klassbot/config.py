@@ -15,6 +15,7 @@ default_configuration = {
         "max_user_votes_per_day": 200,
         "max_inline_shares": 20,
     },
+    "language": {"default": "English"},
     "database": {
         "sql_uri": "postgres://localhost/pollbot",
         "connection_count": 20,
@@ -35,13 +36,13 @@ default_configuration = {
     },
 }
 
-config_path = os.path.expanduser("~/.config/ultimate_pollbot.toml")
+config_path = os.path.expanduser("~/.config/klassbot.toml")
 
 if not os.path.exists(config_path):
     with open(config_path, "w") as file_descriptor:
         toml.dump(default_configuration, file_descriptor)
     print(
-        "Please adjust the configuration file at '~/.config/ultimate_pollbot.toml'"
+        "Please adjust the configuration file at '~/.config/klassbot.toml'"
     )
     sys.exit(1)
 else:
