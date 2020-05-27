@@ -1,0 +1,1 @@
+from klassbot.models.klass.klass import Klass

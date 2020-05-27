@@ -16,7 +16,7 @@ class User(base):
     __tablename__ = "user"
 
     id = Column(BigInteger, primary_key=True)
-    name = Column(String)
+    name = Column(String, nullable=False, default="User")
     username = Column(String)
 
     # Flags
@@ -30,15 +30,6 @@ class User(base):
     broadcast_sent = Column(Boolean, nullable=False, default=False)
     last_update = Column(DateTime)
 
-    # Debug time j
-    created_at = Column(DateTime, server_default=func.now(), nullable=False)
-    updated_at = Column(
-        DateTime,
-        server_default=func.now(),
-        onupdate=func.now(),
-        nullable=False,
-    )
-
     # Permanent settings
     admin = Column(Boolean, nullable=False, default=False)
     locale = Column(String, default="English")
@@ -48,10 +39,14 @@ class User(base):
     # Chat logic
     expected_input = Column(String)
 
-    # User type
-    type = Column(str)
+    # One to many
+    klasses = relationship("UserKlass", back_populates="user")
 
-    __mapper_args__ = {
-        "polymorphic_identity": "employee",
-        "polymorphic_on": type,
-    }
+    # Date
+    created_at = Column(DateTime, server_default=func.now(), nullable=False)
+    updated_at = Column(
+        DateTime, server_default=func.now(), onupdate=func.now(), nullable=False
+    )
+
+    def create_klass(self):
+        pass

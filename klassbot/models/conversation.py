@@ -25,7 +25,7 @@ def parse_key(key):
 
 
 class Conversation(base):
-    """The model for a Conversation."""
+    """The model to store Conversations."""
 
     __tablename__ = "conversation"
 
