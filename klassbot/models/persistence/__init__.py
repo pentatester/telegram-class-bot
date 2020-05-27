@@ -1,0 +1,1 @@
+from klassbot.models.persistence.conversation import Conversation
