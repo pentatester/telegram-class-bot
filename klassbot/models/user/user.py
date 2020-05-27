@@ -47,6 +47,3 @@ class User(base):
     updated_at = Column(
         DateTime, server_default=func.now(), onupdate=func.now(), nullable=False
     )
-
-    def create_klass(self):
-        pass
