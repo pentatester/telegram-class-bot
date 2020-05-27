@@ -3,6 +3,10 @@
     Teachers -> Assignment !-> Student -> (Deadline)? -> End -> Teachers
 
 Commands
+/start
+add to group?
+
+
 /join-class -> input code / link
 
 /create-assign -> lesson? -> name -> file/text -> start-end date -> grade?
@@ -16,4 +20,13 @@ Commands
 /list-assign
 /list-lesson
 
+
+
+bot.data?
+{
+    "classes":[...]
+}
+
+
+klass id is group chat id
 

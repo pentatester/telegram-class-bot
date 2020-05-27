@@ -244,6 +244,22 @@ testing = ["argcomplete", "hypothesis (>=3.56)", "mock", "nose", "requests", "xm
 
 [[package]]
 category = "main"
+description = "Translation library for Python"
+name = "python-i18n"
+optional = false
+python-versions = "*"
+version = "0.3.7"
+
+[package.dependencies]
+[package.dependencies.pyyaml]
+optional = true
+version = ">=3.10"
+
+[package.extras]
+yaml = ["pyyaml (>=3.10)"]
+
+[[package]]
+category = "main"
 description = "We have made you a wrapper you can't refuse"
 name = "python-telegram-bot"
 optional = false
@@ -260,6 +276,14 @@ tornado = ">=5.1"
 [package.extras]
 json = ["ujson"]
 socks = ["pysocks"]
+
+[[package]]
+category = "main"
+description = "YAML parser and emitter for Python"
+name = "pyyaml"
+optional = false
+python-versions = ">=2.7, !=3.0.*, !=3.1.*, !=3.2.*, !=3.3.*, !=3.4.*"
+version = "5.3.1"
 
 [[package]]
 category = "dev"
@@ -330,7 +354,7 @@ python-versions = "*"
 version = "0.1.9"
 
 [metadata]
-content-hash = "549e1414425dd37bba94b2924e17f7e9c3b03d3e9a99e4e4b99a33b615fde719"
+content-hash = "c58f4b7ea89d2086b281c96783ac21376324bc37464cedee61307dbb7bbf2890"
 python-versions = "^3.8"
 
 [metadata.files]
@@ -468,9 +492,26 @@ pytest = [
     {file = "pytest-5.4.2-py3-none-any.whl", hash = "sha256:95c710d0a72d91c13fae35dce195633c929c3792f54125919847fdcdf7caa0d3"},
     {file = "pytest-5.4.2.tar.gz", hash = "sha256:eb2b5e935f6a019317e455b6da83dd8650ac9ffd2ee73a7b657a30873d67a698"},
 ]
+python-i18n = [
+    {file = "python-i18n-0.3.7.tar.gz", hash = "sha256:095cb67a449f9caaddb4ca034255dcb442b1d1aca874294eda537bb5ea919892"},
+    {file = "python_i18n-0.3.7-py3-none-any.whl", hash = "sha256:85954be9c16b53221b42ebdf5164d6e6fef80f2dd0e388c7a468687330bba1d3"},
+]
 python-telegram-bot = [
     {file = "python-telegram-bot-12.7.tar.gz", hash = "sha256:218b0583afb8baeefe6f2f1ddd8f1bb1ae30f0af3ce9160a372abd2cdf258eef"},
     {file = "python_telegram_bot-12.7-py2.py3-none-any.whl", hash = "sha256:6878cc642114c8c116ceada41639a9df487f42d5478d9f34cae513cc5c260dee"},
+]
+pyyaml = [
+    {file = "PyYAML-5.3.1-cp27-cp27m-win32.whl", hash = "sha256:74809a57b329d6cc0fdccee6318f44b9b8649961fa73144a98735b0aaf029f1f"},
+    {file = "PyYAML-5.3.1-cp27-cp27m-win_amd64.whl", hash = "sha256:240097ff019d7c70a4922b6869d8a86407758333f02203e0fc6ff79c5dcede76"},
+    {file = "PyYAML-5.3.1-cp35-cp35m-win32.whl", hash = "sha256:4f4b913ca1a7319b33cfb1369e91e50354d6f07a135f3b901aca02aa95940bd2"},
+    {file = "PyYAML-5.3.1-cp35-cp35m-win_amd64.whl", hash = "sha256:cc8955cfbfc7a115fa81d85284ee61147059a753344bc51098f3ccd69b0d7e0c"},
+    {file = "PyYAML-5.3.1-cp36-cp36m-win32.whl", hash = "sha256:7739fc0fa8205b3ee8808aea45e968bc90082c10aef6ea95e855e10abf4a37b2"},
+    {file = "PyYAML-5.3.1-cp36-cp36m-win_amd64.whl", hash = "sha256:69f00dca373f240f842b2931fb2c7e14ddbacd1397d57157a9b005a6a9942648"},
+    {file = "PyYAML-5.3.1-cp37-cp37m-win32.whl", hash = "sha256:d13155f591e6fcc1ec3b30685d50bf0711574e2c0dfffd7644babf8b5102ca1a"},
+    {file = "PyYAML-5.3.1-cp37-cp37m-win_amd64.whl", hash = "sha256:73f099454b799e05e5ab51423c7bcf361c58d3206fa7b0d555426b1f4d9a3eaf"},
+    {file = "PyYAML-5.3.1-cp38-cp38-win32.whl", hash = "sha256:06a0d7ba600ce0b2d2fe2e78453a470b5a6e000a985dd4a4e54e436cc36b0e97"},
+    {file = "PyYAML-5.3.1-cp38-cp38-win_amd64.whl", hash = "sha256:95f71d2af0ff4227885f7a6605c37fd53d3a106fcab511b8860ecca9fcf400ee"},
+    {file = "PyYAML-5.3.1.tar.gz", hash = "sha256:b8eac752c5e14d3eca0e6dd9199cd627518cb5ec06add0de9d32baeee6fe645d"},
 ]
 regex = [
     {file = "regex-2020.5.14-cp27-cp27m-win32.whl", hash = "sha256:e565569fc28e3ba3e475ec344d87ed3cd8ba2d575335359749298a0899fe122e"},
