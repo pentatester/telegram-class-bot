@@ -29,29 +29,49 @@ class Conversation(base):
     id = Column(BigInteger, primary_key=True)
     name = Column(String)
 
-    # Boolean
-    user_id = Column(BigInteger, nullable=False)
-    chat_id = Column(BigInteger, nullable=False)
-    message_id = Column(BigInteger, nullable=True)
+    # BigInteger
+    first = Column(BigInteger, nullable=True)
+    second = Column(BigInteger, nullable=True)
+    third = Column(BigInteger, nullable=True)
 
     # States
     state = Column(PickleType, nullable=True)
     timeout = Column(DateTime, nullable=True)
 
-    def key(self, update):
+    @property
+    def key(self):
+        keys = list()
+        if self.first:
+            keys.append(self.first)
+        if self.second:
+            keys.append(self.second)
+        if self.third:
+            keys.append(self.third)
+        return tuple(keys)
+
+    @key.setter
+    def key(self, keys):
+        if len(keys) == 3:
+            self.first, self.second, self.third = keys
+        elif len(keys) == 2:
+            self.first, self.second = keys
+        elif len(keys) == 1:
+            self.first = keys
+
+    def key_from_update(self, update):
         chat = update.effective_chat
         user = update.effective_user
         keys = list()
         if self.per_chat:
-            self.chat_id = chat.id
-            keys.append(self.chat_id)
+            self.first = chat.id
+            keys.append(self.first)
         if self.per_user and user is not None:
-            self.user_id = user.id
-            keys.append(self.user_id)
+            self.second = user.id
+            keys.append(self.second)
         if self.per_message:
-            self.message_id = (
+            self.third = (
                 update.callback_query.inline_message_id
                 or update.callback_query.message.message_id
             )
-            keys.append(self.message_id)
+            keys.append(self.third)
         return tuple(keys)
