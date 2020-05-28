@@ -1,5 +1,4 @@
 from collections import defaultdict
-
 from sqlalchemy.orm.exc import NoResultFound
 from telegram.ext import BasePersistence
 
@@ -22,22 +21,28 @@ class CustomPersistence(BasePersistence):
             conversations = self.session.query(Conversation).filter_by(
                 Conversation.name == name
             )
-            convs = []
+            convs = dict()
             for conversation in conversations:
-                convs.append((conversation.key, conversation.state))
-            return defaultdict(convs)
+                convs[conversation.key] = conversation.state
+            return convs
         except NoResultFound:
             return defaultdict()
 
     def update_conversation(self, name, key, new_state):
-        conv = get_one_or_create(
-            session=self.session, model=Conversation, name=name
+        chat_id, user_id, message_id = key
+        conv, created = get_one_or_create(
+            session=self.session,
+            model=Conversation,
+            name=name,
+            chat_id=chat_id if chat_id != -1 else None,
+            user_id=user_id if user_id != -1 else None,
+            message_id=message_id if message_id != -1 else None,
         )
-        conv.key = key
         conv.state = new_state
+        if not created:
+            self.session.flush()
 
     def flush(self):
-        self.session.commit()
-
-    def __del__(self):
-        self.session.close()
+        if self.session:
+            self.session.flush()
+            self.session.close()

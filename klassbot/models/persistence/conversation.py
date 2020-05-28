@@ -1,7 +1,4 @@
 """The sqlite model for a user."""
-
-from collections import namedtuple
-
 from sqlalchemy import Column
 from sqlalchemy.types import (
     BigInteger,
@@ -11,14 +8,6 @@ from sqlalchemy.types import (
 )
 
 from klassbot.db import base
-
-Key = namedtuple(
-    "Key", ["user", "chat", "message"], defaults=[None, None, None]
-)
-
-
-def parse_key(key):
-    return Key(*key)._asdict()
 
 
 class Conversation(base):
@@ -30,9 +19,9 @@ class Conversation(base):
     name = Column(String)
 
     # BigInteger
-    first = Column(BigInteger, nullable=True)
-    second = Column(BigInteger, nullable=True)
-    third = Column(BigInteger, nullable=True)
+    chat_id = Column(BigInteger, nullable=True)
+    user_id = Column(BigInteger, nullable=True)
+    message_id = Column(BigInteger, nullable=True)
 
     # States
     state = Column(PickleType, nullable=True)
@@ -41,22 +30,26 @@ class Conversation(base):
     @property
     def key(self):
         keys = list()
-        if self.first:
-            keys.append(self.first)
-        if self.second:
-            keys.append(self.second)
-        if self.third:
-            keys.append(self.third)
+        if self.chat_id:
+            keys.append(self.chat_id)
+        if self.user_id:
+            keys.append(self.user_id)
+        if self.message_id:
+            keys.append(self.message_id)
         return tuple(keys)
 
     @key.setter
     def key(self, keys):
-        if len(keys) == 3:
-            self.first, self.second, self.third = keys
-        elif len(keys) == 2:
-            self.first, self.second = keys
-        elif len(keys) == 1:
-            self.first = keys
+        if isinstance(keys, tuple) and len(keys) == 3:
+            chat_id, user_id, message_id = keys
+            if chat_id != -1:
+                self.chat_id = chat_id
+            if user_id != -1:
+                self.user_id = user_id
+            if message_id != -1:
+                self.message_id = message_id
+        else:
+            raise ValueError("`key` not instance of tuple & len != 3")
 
     def key_from_update(self, update):
         chat = update.effective_chat

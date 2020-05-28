@@ -1,5 +1,4 @@
 from functools import wraps
-
 from sqlalchemy.orm import Session
 from sqlalchemy.exc import IntegrityError
 from sqlalchemy.orm.exc import NoResultFound
