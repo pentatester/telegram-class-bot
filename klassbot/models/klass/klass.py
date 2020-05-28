@@ -1,6 +1,6 @@
 """The sqlite model for a user."""
 from sqlalchemy import Column, func, ForeignKey
-from sqlalchemy.types import BigInteger, DateTime, String
+from sqlalchemy.types import BigInteger, Boolean, DateTime, String
 from sqlalchemy.orm import relationship
 
 from klassbot.db import base
@@ -15,8 +15,11 @@ class Klass(base):
     __tablename__ = "klass"
 
     id = Column(BigInteger, primary_key=True)
+    chat_id = Column(BigInteger, primary_key=True)
     name = Column(String)
-    chat_id = Column(BigInteger, nullable=True)
+
+    # Flags
+    started = Column(Boolean, nullable=False, default=False)
 
     # Date
     created_at = Column(DateTime, server_default=func.now(), nullable=False)
