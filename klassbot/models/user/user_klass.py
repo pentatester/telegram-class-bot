@@ -11,7 +11,7 @@ from sqlalchemy.orm import relationship
 
 from klassbot.db import base
 
-UserKlassConfig = namedtuple("UserKlassConfig", ["admin", "student", "teacher", "notification"], default=[False, False, False, True])
+UserKlassConfig = namedtuple("UserKlassConfig", ["admin", "student", "teacher", "notification"], defaults=[False, False, False, True])
 
 
 class UserKlass(base):
