@@ -1,125 +1,109 @@
 """Wrappers"""
 
 from functools import wraps
-
-from sqlalchemy.exc import IntegrityError
-
+from telegram import Update
+from telegram.ext import CallbackContext
+from telegram.error import (
+    BadRequest,
+    Unauthorized,
+    TimedOut,
+    RetryAfter,
+)
 from klassbot.db import get_session
+from klassbot.logging import logging
 from klassbot.models import User
 
-
-def message_wrapper(private=False):
-    """Create a session, handle permissions, handle exceptions and prepare some entities."""
-
-    def real_decorator(func):
-        """Parametrized decorator closure."""
-
-        @wraps(func)
-        def wrapper(update, context):
-            user = None
-            session = get_session()
-            try:
-                if hasattr(update, "message") and update.message:
-                    message = update.message
-                elif (
-                    hasattr(update, "edited_message") and update.edited_message
-                ):
-                    message = update.edited_message
-                else:
-                    raise Exception("Got an update without a message")
-
-                user, _ = get_user(session, message.from_user)
-                if user.banned:
-                    return
-
-                if private and message.chat.type != "private":
-                    message.chat.send_message(
-                        "Please do this in a direct conversation with me."
-                    )
-                    return
-
-                response = func(context.bot, update, session, user)
-
-                session.commit()
-
-                # Respond to user
-                if response is not None:
-                    message.chat.send_message(response)
-
-            except Exception as e:
-                session.close()
-
-        return wrapper
-
-    return
+logger = logging.getLogger("Wrapper")
 
 
-def get_user(session, tg_user):
-    """Get the user from the event."""
-    user = session.query(User).get(tg_user.id)
-    if user is None:
-        user = User(tg_user.id, tg_user.username)
-        session.add(user)
+def private_wrapper(func):
+    """Wrapper for private, set `context.user_data` to `User` obj"""
+
+    @wraps
+    def wrapper(update: Update, context: CallbackContext):
+        if not update.effective_chat.type == "private":
+            raise Exception("Wrapper for private chat only!")
+        result = None
+        session = get_session()
         try:
+            context.user_data = User.from_user(update.effective_user, session)
+            result = func(update, context)
             session.commit()
-            # increase_stat(session, "new_users")
-        # Handle race condition for parallel user addition
-        # Return the user that has already been created
-        # in another session
-        except IntegrityError as e:
-            session.rollback()
-            user = session.query(User).get(tg_user.id)
-            if user is None:
-                raise e
+            del context.user_data
+        except Exception as e:
+            if not ignore_exception(e):
+                logger.exception(e.msg)
+        finally:
+            session.close()
+            return result
 
-    if tg_user.username is not None:
-        user.username = tg_user.username.lower()
+    return wrapper
 
-    name = get_name_from_tg_user(tg_user)
-    user.name = name
 
-    # Ensure user statistics exist for this user
-    # We need to track at least some user activity, since there seem to be some users which
-    # abuse the bot by creating polls and spamming up to 1 million votes per day.
-    #
-    # I really hate doing this, but I don't see another way to prevent DOS attacks
-    # without tracking at least some numbers.
-    user_statistic = session.query(UserStatistic).get((date.today(), user.id))
+def group_command_wrapper(func):
+    """Wrapper only for group"""
 
-    if user_statistic is None:
-        user_statistic = UserStatistic(user)
-        session.add(user_statistic)
-        try:
-            session.commit()
-        # Handle race condition for parallel user statistic creation
-        # Return the statistic that has already been created in another session
-        except IntegrityError as e:
-            session.rollback()
-            user_statistic = session.query(UserStatistic).get(
-                (date.today(), user.id)
+    @wraps
+    def wrapper(update: Update, context: CallbackContext):
+        if not (
+            update.effective_chat.type == "group"
+            or update.effective_chat.type == "supergroup"
+        ):
+            raise Exception("Wrapper for group | supergroup chat only!")
+        result = None
+        return result
+
+    return wrapper
+
+
+def ignore_exception(exception):
+    """Check whether we can safely ignore this exception."""
+    if isinstance(exception, BadRequest):
+        if (
+            exception.message.startswith("Query is too old")
+            or exception.message.startswith("Have no rights to send a message")
+            or exception.message.startswith("Message_id_invalid")
+            or exception.message.startswith("Message identifier not specified")
+            or exception.message.startswith("Schedule_date_invalid")
+            or exception.message.startswith("Message to edit not found")
+            or exception.message.startswith(
+                "Message is not modified: specified new message content"
             )
-            if user_statistic is None:
-                raise e
+        ):
+            return True
 
-    return user, user_statistic
+    if isinstance(exception, Unauthorized):
+        if (
+            exception.message.lower()
+            == "forbidden: bot was blocked by the user"
+        ):
+            return True
+        if exception.message.lower() == "forbidden: message_author_required":
+            return True
+        if (
+            exception.message.lower()
+            == "forbidden: bot is not a member of the supergroup chat"
+        ):
+            return True
+        if exception.message.lower() == "forbidden: user is deactivated":
+            return True
+        if (
+            exception.message.lower()
+            == "forbidden: bot was kicked from the group chat"
+        ):
+            return True
+        if (
+            exception.message.lower()
+            == "forbidden: bot was kicked from the supergroup chat"
+        ):
+            return True
+        if exception.message.lower() == "forbidden: chat_write_forbidden":
+            return True
 
+    if isinstance(exception, TimedOut):
+        return True
 
-def get_name_from_tg_user(tg_user):
-    """Return the best possible name for a User."""
-    name = ""
-    if tg_user.first_name is not None:
-        name = tg_user.first_name
-        name += " "
-    if tg_user.last_name is not None:
-        name += tg_user.last_name
+    if isinstance(exception, RetryAfter):
+        return True
 
-    if tg_user.username is not None and name == "":
-        name = tg_user.username
-
-    if name == "":
-        name = str(tg_user.id)
-
-    for character in ["[", "]", "_", "*"]:
-        name = name.replace(character, "")
-
-    return name.strip()
+    return False
