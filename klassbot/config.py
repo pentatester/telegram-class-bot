@@ -3,17 +3,13 @@ import sys
 import toml
 import logging
 
-config = dict()
-
 default_configuration = {
     "telegram": {
         "bot_name": "your_bot_@_username",
         "api_key": "your_telegram_api_key",
         "worker_count": 20,
-        "admin": "nukesor",
-        "allow_private_vote": False,
-        "max_user_votes_per_day": 200,
-        "max_inline_shares": 20,
+        "admin": "hexatester",
+        "max_inline": 10,
     },
     "language": {"default": "English"},
     "database": {
