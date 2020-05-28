@@ -10,7 +10,7 @@ from telegram.error import (
     RetryAfter,
 )
 from klassbot.db import get_session
-from klassbot.logging import logging
+from klassbot.klassbot import logging
 from klassbot.models import User
 
 logger = logging.getLogger("Wrapper")
