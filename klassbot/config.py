@@ -13,7 +13,8 @@ default_configuration = {
     },
     "language": {"default": "English"},
     "database": {
-        "sql_uri": "postgres://localhost/pollbot",
+        "sql_uri": "sqlite://",
+        "postgres": True,
         "connection_count": 20,
         "overflow_count": 10,
     },

@@ -1,6 +1,8 @@
 """Wrappers"""
 
 from functools import wraps
+from sqlalchemy.exc import IntegrityError
+from sqlalchemy.orm.exc import NoResultFound
 from telegram import Update
 from telegram.ext import CallbackContext
 from telegram.error import (
@@ -16,34 +18,39 @@ from klassbot.models import User
 logger = logging.getLogger("Wrapper")
 
 
-def private_wrapper(func):
-    """Wrapper for private, set `context.user_data` to `User` obj"""
+def private_wrapper(commit=True):
+    def real_wrapper(func):
+        """Wrapper for private, set `context.user_data` to `User` obj"""
 
-    @wraps
-    def wrapper(update: Update, context: CallbackContext):
-        if not update.effective_chat.type == "private":
-            raise Exception("Wrapper for private chat only!")
-        result = None
-        session = get_session()
-        try:
-            context.user_data = User.from_user(update.effective_user, session)
-            result = func(update, context)
-            session.commit()
-            del context.user_data
-        except Exception as e:
-            if not ignore_exception(e):
-                logger.exception(e.msg)
-        finally:
-            session.close()
-            return result
+        @wraps(func)
+        def wrapper(update: Update, context: CallbackContext):
+            if not update.effective_chat.type == "private":
+                raise Exception("Wrapper for private chat only!")
+            result = None
+            session = get_session()
+            try:
+                user, created = get_or_create_user(
+                    update.effective_user, session=session
+                )
+                result = func(update, context, user)
+                if commit or created:
+                    session.commit()
+            except Exception as e:
+                if not ignore_exception(e):
+                    logger.exception(e.msg)
+            finally:
+                session.close()
+                return result
 
-    return wrapper
+        return wrapper
+
+    return real_wrapper
 
 
 def group_command_wrapper(func):
     """Wrapper only for group"""
 
-    @wraps
+    @wraps(func)
     def wrapper(update: Update, context: CallbackContext):
         if not (
             update.effective_chat.type == "group"
@@ -107,3 +114,45 @@ def ignore_exception(exception):
         return True
 
     return False
+
+
+def get_name_from_tg_user(tg_user):
+    """Return the best possible name for a User."""
+    name = ""
+    if tg_user.first_name is not None:
+        name = tg_user.first_name
+        name += " "
+    if tg_user.last_name is not None:
+        name += tg_user.last_name
+
+    if tg_user.username is not None and name == "":
+        name = tg_user.username
+
+    if name == "":
+        name = str(tg_user.id)
+
+    for character in ["[", "]", "_", "*"]:
+        name = name.replace(character, "")
+
+    return name.strip()
+
+
+def get_or_create_user(user_, session):
+    try:
+        return session.query(User).filter_by(id=user_.id).one(), False
+    except NoResultFound:
+        user = User(
+            id=user_.id,
+            name=get_name_from_tg_user(user_),
+            username=user_.username,
+        )
+        try:
+            session.add(user)
+            session.flush()
+            return user, True
+        except IntegrityError:
+            session.rollback()
+            return (
+                session.query(User).filter_by(id=user_.id).one(),
+                False,
+            )

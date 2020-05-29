@@ -133,3 +133,6 @@ dmypy.json
 
 # Config
 .config/
+
+# Local DB
+klassbot.db

@@ -6,12 +6,14 @@ from sqlalchemy.ext.declarative import declarative_base
 
 from klassbot.config import config
 
-engine = create_engine(
-    config["database"]["sql_uri"],
-    pool_size=config["database"]["connection_count"],
-    max_overflow=config["database"]["overflow_count"],
-    echo=False,
-)
+
+db_conf = {
+    "echo": True,
+}
+if config["database"]["postgres"]:
+    db_conf["max_overflow"] = config["database"]["overflow_count"]
+    db_conf["pool_size"] = config["database"]["connection_count"]
+engine = create_engine(config["database"]["sql_uri"], **db_conf)
 base = declarative_base(bind=engine)
 
 
