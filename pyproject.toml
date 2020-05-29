@@ -1,6 +1,6 @@
 [tool.poetry]
 name = "klassbot"
-version = "0.2.1"
+version = "0.2.2"
 description = ""
 authors = ["hexatester <revolusi147id@gmail.com>"]
 
