@@ -2,11 +2,11 @@
 from sqlalchemy import Column, func, ForeignKey
 from sqlalchemy.types import BigInteger, Boolean, DateTime, String
 from sqlalchemy.orm import relationship
+from telegram import Chat
 
 from klassbot.db import base
-
-from klassbot.models import UserKlass
-from klassbot.models.user import UserKlassConfig
+from klassbot.models import User, UserKlass
+from klassbot.utils.db import get_one_or_create
 
 
 class Klass(base):
@@ -29,6 +29,7 @@ class Klass(base):
 
     # One to many
     users = relationship("UserKlass", back_populates="klass")
+    assigns = relationship("Assign")
 
     # One to one
     creator_id = Column(
@@ -39,8 +40,38 @@ class Klass(base):
     )
     creator = relationship("User")
 
-    def add_member(self, user, config: UserKlassConfig):
-        uc = UserKlass()
-        uc.user = user
-        uc.config(config)
-        self.users.append(uc)
+    @staticmethod
+    def from_chat(chat: Chat):
+        """Create an instance of `Klass` using Chat
+
+        Arguments:
+            chat {telegram.Chat} -- An instance of Telegram Chat
+
+        Returns:
+            Klass -- An instance of models.Klass
+        """
+        name = str(chat.title)
+        for character in ["[", "]", "_", "*"]:
+            name = name.replace(character, "")
+        return Klass(id=chat.id, name=name)
+
+    def add_user(
+        self, user: User, session=None,
+    ):
+        """Add a `User` into `Klass`
+
+        Arguments:
+            user {User} -- An instance of models.User
+
+        Keyword Arguments:
+            session {sqlalchemy.Session} -- Database session (default: {None})
+
+        Returns:
+            UserKlass -- An instance of models.UserKlass
+        """
+        user_klass, created = get_one_or_create(
+            session=session, model=UserKlass, user_id=user.id, klass_id=self.id
+        )
+        if created:
+            self.users.append(user_klass)
+        return user_klass

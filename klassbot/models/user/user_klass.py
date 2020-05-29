@@ -19,6 +19,7 @@ class UserKlass(base):
 
     __tablename__ = "user_klass"
 
+    # Many to One
     id = Column(BigInteger, primary_key=True)
     user_id = Column(
         BigInteger,
@@ -34,6 +35,9 @@ class UserKlass(base):
         index=True,
     )
     klass = relationship("Klass", back_populates="users")
+
+    # One to Many
+    grades = relationship("AssignGrade", back_populates="user")
 
     # Flags
     admin = Column(Boolean, default=False)
