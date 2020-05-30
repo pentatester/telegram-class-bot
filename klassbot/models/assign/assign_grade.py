@@ -29,7 +29,7 @@ class AssignGrade(base):
     assign = relationship("Assign", back_populates="grades")
     user_id = Column(
         BigInteger,
-        ForeignKey("user_klass.id", ondelete="cascade"),
+        ForeignKey("user_klass.user_id", ondelete="cascade"),
         nullable=True,
         index=True,
     )
