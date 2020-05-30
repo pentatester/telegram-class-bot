@@ -2,9 +2,8 @@ from collections import defaultdict
 from sqlalchemy.orm.exc import NoResultFound
 from telegram.ext import BasePersistence
 
-from klassbot.db import get_session
+from klassbot.db import get_session, get_one_or_create
 from klassbot.models import Conversation
-from klassbot.utils.db import get_one_or_create
 
 
 class CustomPersistence(BasePersistence):

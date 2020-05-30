@@ -4,9 +4,8 @@ from sqlalchemy.types import BigInteger, Boolean, DateTime, String
 from sqlalchemy.orm import relationship
 from telegram import Chat
 
-from klassbot.db import base
+from klassbot.db import base, get_one_or_create
 from klassbot.models import User, UserKlass
-from klassbot.utils.db import get_one_or_create
 
 
 class Klass(base):
