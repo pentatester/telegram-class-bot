@@ -30,7 +30,7 @@ def message_wrapper(commit=True, klass_=False):
                 user, created_user = get_or_create_user(
                     update.effective_user, session=session
                 )
-                if klass_ and update.effective_chat.type == "group":
+                if klass_ and is_group(update.effective_chat):
                     klass, created_klass = get_or_create_klass(
                         update.effective_chat, session=session
                     )
@@ -171,3 +171,7 @@ def get_or_create_user(user_, session):
                 session.query(User).filter_by(id=user_.id).one(),
                 False,
             )
+
+
+def is_group(chat: Chat):
+    return chat.type == Chat.GROUP or chat.type == Chat.SUPERGROUP

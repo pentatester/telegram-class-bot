@@ -29,7 +29,7 @@ class Klass(base):
 
     # One to many
     users = relationship("UserKlass", back_populates="klass")
-    assigns = relationship("Assign")
+    assigns = relationship("Assign", back_populates="klass")
 
     # One to one
     creator_id = Column(

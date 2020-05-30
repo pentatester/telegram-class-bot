@@ -23,5 +23,11 @@ def create(update: Update, context: CallbackContext, user: User = None):
 
 @run_async
 @message_wrapper(True, True)
-def create_klass(update: Update, context: CallbackContext, user: UserKlass = None, klass: Klass = None):
-    pass
+def create_klass(
+    update: Update,
+    context: CallbackContext,
+    user: UserKlass = None,
+    klass: Klass = None,
+):
+    update.effective_message.reply_text("Okay")
+    return
