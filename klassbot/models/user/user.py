@@ -1,11 +1,13 @@
 """The sqlite model for a user."""
 from sqlalchemy import Boolean, Column, func
+from sqlalchemy.exc import IntegrityError
+from sqlalchemy.orm import relationship
+from sqlalchemy.orm.exc import NoResultFound
 from sqlalchemy.types import (
     BigInteger,
     DateTime,
     String,
 )
-from sqlalchemy.orm import relationship
 from telegram import User as TgUser
 
 from klassbot.db import base
@@ -57,6 +59,23 @@ class User(base):
             name=get_name_from_tg_user(user),
             username=user.username,
         )
+
+    @classmethod
+    def get_or_create(cls, user_: TgUser, session):
+        try:
+            return session.query(cls).filter_by(id=user_.id).one(), False
+        except NoResultFound:
+            user = cls.from_user(user_)
+            try:
+                session.add(user)
+                session.flush()
+                return user, True
+            except IntegrityError:
+                session.rollback()
+                return (
+                    session.query(cls).filter_by(id=user_.id).one(),
+                    False,
+                )
 
 
 def get_name_from_tg_user(tg_user):

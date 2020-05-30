@@ -40,7 +40,7 @@ class Assign(base):
     teacher = relationship("User", back_populates="assigns")
 
     # One to Many
-    grades = relationship("AssignGrade", back_populates="assigns")
+    grades = relationship("AssignGrade", back_populates="assign")
 
     # Date
     created_at = Column(DateTime, server_default=func.now(), nullable=False)

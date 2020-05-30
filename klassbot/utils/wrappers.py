@@ -1,8 +1,6 @@
 """Wrappers"""
 
 from functools import wraps
-from sqlalchemy.exc import IntegrityError
-from sqlalchemy.orm.exc import NoResultFound
 from telegram import Update, Chat
 from telegram.ext import CallbackContext
 from telegram.error import (
@@ -13,7 +11,7 @@ from telegram.error import (
 )
 from klassbot.db import get_session
 from klassbot.klassbot import logging
-from klassbot.models import User, Klass
+from klassbot.models import User, Klass, UserKlass
 
 logger = logging.getLogger("Wrapper")
 
@@ -27,21 +25,19 @@ def message_wrapper(commit=True, klass_=False):
             result = None
             session = get_session()
             try:
-                user, created_user = get_or_create_user(
+                user, _ = User.get_or_create(
                     update.effective_user, session=session
                 )
-                if klass_ and update.effective_chat.type == "group":
-                    klass, created_klass = get_or_create_klass(
-                        update.effective_chat, session=session
+                if klass_ and is_group(update.effective_chat):
+                    klass, _ = Klass.get_or_create(update, session=session)
+                    user_klass, _ = UserKlass.get_or_create(
+                        user, klass, session
                     )
-                    user_klass = klass.add_user(user, session=session)
                     result = func(update, context, user_klass, klass)
-                    if commit or created_user or created_klass:
-                        session.commit()
                 else:
                     result = func(update, context, user)
-                    if commit or created_user:
-                        session.commit()
+                if commit:
+                    session.commit()
             except Exception as e:
                 if not ignore_exception(e):
                     logger.exception(e.msg)
@@ -65,14 +61,16 @@ def klass_command_wrapper(commit=True):
             result = None
             session = get_session()
             try:
-                klass, created_klass = get_or_create_klass(
-                    update.effective_chat, session
-                )
-                user, created_user = get_or_create_user(
-                    update.effective_user, session
-                )
-                result = func(update, context, klass, user)
-                if commit or created_klass or created_user:
+                klass, _ = Klass.get_or_create(update.effective_chat, session)
+                if klass.started:
+                    user, _ = User.get_or_create(update.effective_user, session)
+                    user_klass, created = UserKlass.get_or_create(
+                        user, klass, session
+                    )
+                    result = func(update, context, user=user, klass=klass)
+                else:
+                    result = func(update, context, klass=klass)
+                if commit:
                     session.commit()
             except Exception as e:
                 if not ignore_exception(e):
@@ -139,35 +137,5 @@ def ignore_exception(exception):
     return False
 
 
-def get_or_create_klass(chat: Chat, session):
-    try:
-        return session.query(Klass).filter_by(id=chat.id).one(), False
-    except NoResultFound:
-        klass = Klass.from_chat(chat)
-        try:
-            session.add(klass)
-            session.flush()
-            return klass, True
-        except IntegrityError:
-            session.rollback()
-            return (
-                session.query(Klass).filter_by(id=chat.id).one(),
-                False,
-            )
-
-
-def get_or_create_user(user_, session):
-    try:
-        return session.query(User).filter_by(id=user_.id).one(), False
-    except NoResultFound:
-        user = User.from_user(user_)
-        try:
-            session.add(user)
-            session.flush()
-            return user, True
-        except IntegrityError:
-            session.rollback()
-            return (
-                session.query(User).filter_by(id=user_.id).one(),
-                False,
-            )
+def is_group(chat: Chat):
+    return chat.type == Chat.GROUP or chat.type == Chat.SUPERGROUP

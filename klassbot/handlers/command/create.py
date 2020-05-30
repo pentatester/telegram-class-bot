@@ -1,8 +1,8 @@
-from telegram import Update
+from telegram import Update, Chat, ChatMember
 from telegram.ext import run_async, CallbackContext
 
 from klassbot.models import User, UserKlass, Klass
-from klassbot.utils.wrappers import message_wrapper
+from klassbot.utils.wrappers import message_wrapper, klass_command_wrapper
 
 
 @run_async
@@ -22,6 +22,21 @@ def create(update: Update, context: CallbackContext, user: User = None):
 
 
 @run_async
-@message_wrapper(True, True)
-def create_klass(update: Update, context: CallbackContext, user: UserKlass = None, klass: Klass = None):
-    pass
+@klass_command_wrapper(True)
+def create_klass(
+    update: Update,
+    context: CallbackContext,
+    user: UserKlass = None,
+    klass: Klass = None,
+):
+    if klass.started:
+        return
+    chat: Chat = update.effective_chat
+    chat_member: ChatMember = chat.get_member(user.user_id)
+    if not chat_member.status == ChatMember.CREATOR:
+        return
+    if user:
+        user.from_chat(chat)
+    klass.creator = user.user
+    klass.started = True
+    return
