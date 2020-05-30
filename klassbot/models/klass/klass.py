@@ -1,12 +1,13 @@
 """The sqlite model for a user."""
 from sqlalchemy import Column, func, ForeignKey
+from sqlalchemy.exc import IntegrityError
 from sqlalchemy.types import BigInteger, Boolean, DateTime, String
 from sqlalchemy.orm import relationship
-from telegram import Chat
+from sqlalchemy.orm.exc import NoResultFound
+from telegram import Chat, Update
 
 from klassbot.db import base
-from klassbot.models import User, UserKlass
-from klassbot.utils.db import get_one_or_create
+from klassbot.models import UserKlass
 
 
 class Klass(base):
@@ -15,7 +16,6 @@ class Klass(base):
     __tablename__ = "klass"
 
     id = Column(BigInteger, primary_key=True)
-    chat_id = Column(BigInteger, primary_key=True)
     name = Column(String)
 
     # Flags
@@ -41,37 +41,43 @@ class Klass(base):
     creator = relationship("User")
 
     @staticmethod
-    def from_chat(chat: Chat):
-        """Create an instance of `Klass` using Chat
-
-        Arguments:
-            chat {telegram.Chat} -- An instance of Telegram Chat
-
-        Returns:
-            Klass -- An instance of models.Klass
-        """
+    def from_update(update: Update):
+        chat: Chat = update.effective_chat
         name = str(chat.title)
         for character in ["[", "]", "_", "*"]:
             name = name.replace(character, "")
         return Klass(id=chat.id, name=name)
 
-    def add_user(
-        self, user: User, session=None,
-    ):
-        """Add a `User` into `Klass`
+    @classmethod
+    def get_or_create(cls, update: Update, session):
+        chat: Chat = update.effective_chat
+        try:
+            return session.query(cls).filter_by(id=chat.id).one(), False
+        except NoResultFound:
+            klass = cls.from_update(update)
+            try:
+                session.add(klass)
+                session.flush()
+                return klass, True
+            except IntegrityError:
+                session.rollback()
+                return (
+                    session.query(cls).filter_by(id=chat.id).one(),
+                    False,
+                )
 
-        Arguments:
-            user {User} -- An instance of models.User
+    def add_admin(self, user, session):
+        user_klass, _ = UserKlass.get_or_create(user, self, session)
+        user_klass.admin = True
 
-        Keyword Arguments:
-            session {sqlalchemy.Session} -- Database session (default: {None})
+    def add_teacher(self, user, session):
+        user_klass, _ = UserKlass.get_or_create(user, self, session)
+        user_klass.teacher = True
 
-        Returns:
-            UserKlass -- An instance of models.UserKlass
-        """
-        user_klass, created = get_one_or_create(
-            session=session, model=UserKlass, user_id=user.id, klass_id=self.id
-        )
-        if created:
-            self.users.append(user_klass)
-        return user_klass
+    def add_student(self, user, session):
+        user_klass, _ = UserKlass.get_or_create(user, self, session)
+        user_klass.student = True
+
+    def remove_user(self, user: UserKlass, session):
+        self.users.remove(user)
+        session.delete(user)
