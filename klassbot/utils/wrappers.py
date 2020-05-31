@@ -16,7 +16,7 @@ from klassbot.models import User, Klass, UserKlass
 logger = logging.getLogger("Wrapper")
 
 
-def message_wrapper(commit=True, klass_=False):
+def message_wrapper(commit=True, klass_=True, session=False):
     def real_wrapper(func):
         """Wrapper for message, set `context.user_data` to `User` obj"""
 
@@ -28,14 +28,50 @@ def message_wrapper(commit=True, klass_=False):
                 user, _ = User.get_or_create(
                     update.effective_user, session=session
                 )
+                args = [update, context]
+                kwargs = dict()
                 if klass_ and is_group(update.effective_chat):
                     klass, _ = Klass.get_or_create(update, session=session)
                     user_klass, _ = UserKlass.get_or_create(
                         user, klass, session
                     )
-                    result = func(update, context, user_klass, klass)
+                    args.append(user_klass)
+                    args.append(klass)
                 else:
-                    result = func(update, context, user)
+                    args.append(user)
+                if session:
+                    kwargs["session"] = session
+                result = func(*args, **kwargs)
+                if commit:
+                    session.commit()
+            except Exception as e:
+                if not ignore_exception(e):
+                    logger.exception(e.msg)
+            finally:
+                session.close()
+                return result
+
+        return wrapper
+
+    return real_wrapper
+
+
+def private_command_wrapper(commit=True, session=False):
+    def real_wrapper(func):
+        """Wrapper for message, set `context.user_data` to `User` obj"""
+
+        @wraps(func)
+        def wrapper(update: Update, context: CallbackContext):
+            result = None
+            session = get_session()
+            try:
+                user, _ = User.get_or_create(
+                    update.effective_user, session=session
+                )
+                kwargs = dict()
+                if session:
+                    kwargs["session"] = session
+                result = func(update, context, user, **kwargs)
                 if commit:
                     session.commit()
             except Exception as e:
