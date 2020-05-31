@@ -5,7 +5,9 @@ from sqlalchemy.types import BigInteger, Boolean, DateTime, String
 from sqlalchemy.orm import relationship
 from sqlalchemy.orm.exc import NoResultFound
 from telegram import Chat, Update
+from telegram.utils.helpers import create_deep_linked_url
 
+from klassbot.config import config
 from klassbot.db import base
 from klassbot.models import UserKlass
 
@@ -81,3 +83,9 @@ class Klass(base):
     def remove_user(self, user: UserKlass, session):
         self.users.remove(user)
         session.delete(user)
+
+    @property
+    def invite_link(self):
+        username = config["me"].username
+        payload = f"join-klass-{abs(self.id)}"
+        return create_deep_linked_url(username, payload=payload)
