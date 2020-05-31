@@ -18,6 +18,8 @@ updater = Updater(
     request_kwargs={"read_timeout": 20, "connect_timeout": 20},
 )
 
+config["me"] = updater.bot.get_me()
+
 dispatcher = updater.dispatcher
 
 register(dispatcher)
