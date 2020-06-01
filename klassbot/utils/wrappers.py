@@ -17,9 +17,15 @@ logger = logging.getLogger("Wrapper")
 
 
 def message_wrapper(commit=True, klass_=True, session=False):
-    def real_wrapper(func):
-        """Wrapper for message, set `context.user_data` to `User` obj"""
+    """Multifunction message wrapper
 
+    Keyword Arguments:
+        commit {bool} -- Commit db changes (default: {True})
+        klass_ {bool} -- Add klass to args, change User -> UserKlass (default: {True})
+        session {bool} -- Add `session` to kwargs (default: {False})
+    """
+
+    def real_wrapper(func):
         @wraps(func)
         def wrapper(update: Update, context: CallbackContext):
             result = None
@@ -57,9 +63,14 @@ def message_wrapper(commit=True, klass_=True, session=False):
 
 
 def private_command_wrapper(commit=True, session=False):
-    def real_wrapper(func):
-        """Wrapper for message, set `context.user_data` to `User` obj"""
+    """Wrapper for message, set `context.user_data` to `User` obj
 
+    Keyword Arguments:
+        commit {bool} -- Commit db changes (default: {True})
+        session {bool} -- Add `session` to kwargs (default: {False})
+    """
+
+    def real_wrapper(func):
         @wraps(func)
         def wrapper(update: Update, context: CallbackContext):
             result = None
@@ -87,7 +98,11 @@ def private_command_wrapper(commit=True, session=False):
 
 
 def klass_command_wrapper(commit=True):
-    """Wrapper only for klass"""
+    """Command wrapper for klass?
+
+    Keyword Arguments:
+        commit {bool} -- Commit db changes (default: {True})
+    """
 
     def real_wrapper(func):
         @wraps(func)
