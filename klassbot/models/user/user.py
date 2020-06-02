@@ -77,6 +77,10 @@ class User(base):
                     False,
                 )
 
+    @property
+    def ready(self):
+        return self.started and not self.banned and not self.deleted
+
 
 def get_name_from_tg_user(tg_user):
     """Return the best possible name for a User."""
