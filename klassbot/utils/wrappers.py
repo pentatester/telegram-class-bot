@@ -16,7 +16,7 @@ from klassbot.models import User, Klass, UserKlass
 logger = logging.getLogger("Wrapper")
 
 
-def message_wrapper(commit=True, klass_=True, session=False):
+def message_wrapper(commit=True, klass_=True, session_=False):
     """Multifunction message wrapper
 
     Keyword Arguments:
@@ -45,7 +45,7 @@ def message_wrapper(commit=True, klass_=True, session=False):
                     args.append(klass)
                 else:
                     args.append(user)
-                if session:
+                if session_:
                     kwargs["session"] = session
                 result = func(*args, **kwargs)
                 if commit:
@@ -62,7 +62,7 @@ def message_wrapper(commit=True, klass_=True, session=False):
     return real_wrapper
 
 
-def private_command_wrapper(commit=True, session=False):
+def private_command_wrapper(session_=False):
     """Wrapper for message, set `context.user_data` to `User` obj
 
     Keyword Arguments:
@@ -80,11 +80,10 @@ def private_command_wrapper(commit=True, session=False):
                     update.effective_user, session=session
                 )
                 kwargs = dict()
-                if session:
+                if session_:
                     kwargs["session"] = session
                 result = func(update, context, user, **kwargs)
-                if commit:
-                    session.commit()
+                session.commit()
             except Exception as e:
                 if not ignore_exception(e):
                     logger.exception(e.msg)
@@ -97,7 +96,7 @@ def private_command_wrapper(commit=True, session=False):
     return real_wrapper
 
 
-def klass_command_wrapper(commit=True):
+def klass_command_wrapper(commit=True, overide=False):
     """Command wrapper for klass?
 
     Keyword Arguments:
@@ -113,7 +112,7 @@ def klass_command_wrapper(commit=True):
             session = get_session()
             try:
                 klass, _ = Klass.get_or_create(update.effective_chat, session)
-                if klass.started:
+                if klass.started or overide:
                     user, _ = User.get_or_create(update.effective_user, session)
                     user_klass, created = UserKlass.get_or_create(
                         user, klass, session
@@ -121,6 +120,34 @@ def klass_command_wrapper(commit=True):
                     result = func(update, context, user=user, klass=klass)
                 else:
                     result = func(update, context, klass=klass)
+                if commit:
+                    session.commit()
+            except Exception as e:
+                if not ignore_exception(e):
+                    logger.exception(e.msg)
+            finally:
+                session.close()
+                return result
+
+        return wrapper
+
+    return real_wrapper
+
+
+def callback_wrapper(commit=True, klass_=False, session_=False):
+    def real_wrapper(func):
+        @wraps(func)
+        def wrapper(update: Update, context: CallbackContext):
+            result = None
+            session = get_session()
+            try:
+                user, _ = User.get_or_create(
+                    update.effective_user, session=session
+                )
+                kwargs = dict()
+                if session_:
+                    kwargs["session"] = session
+                result = func(update, context, user, **kwargs)
                 if commit:
                     session.commit()
             except Exception as e:
