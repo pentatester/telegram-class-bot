@@ -1,9 +1,7 @@
 from telegram.ext import CommandHandler, Filters
 
-from klassbot.handlers.command.assign import assign_list
 from klassbot.handlers.command.create import klass_id, create
 from klassbot.handlers.command.help import help
-from klassbot.handlers.command.klass import klass_list
 from klassbot.handlers.command.start import start, start_join
 
 commands = [
@@ -15,8 +13,6 @@ commands = [
     ),
     CommandHandler("help", help, filters=Filters.private),
     CommandHandler("create", create, filters=Filters.private),
-    CommandHandler("assign_list", assign_list, filters=Filters.private),
-    CommandHandler("class_list", klass_list, filters=Filters.private),
     CommandHandler("class_id", klass_id, filters=Filters.group),
 ]
 
