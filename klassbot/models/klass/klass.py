@@ -4,10 +4,13 @@ from sqlalchemy.exc import IntegrityError
 from sqlalchemy.types import BigInteger, Boolean, DateTime, String
 from sqlalchemy.orm import relationship
 from sqlalchemy.orm.exc import NoResultFound
-from telegram import Chat, Update
+from telegram import Chat, Update, InlineKeyboardButton, InlineKeyboardMarkup
+from telegram.utils.helpers import create_deep_linked_url
 
+from klassbot.config import config
 from klassbot.db import base
 from klassbot.models import UserKlass
+from klassbot.utils.enums import CallbackType
 
 
 class Klass(base):
@@ -69,15 +72,59 @@ class Klass(base):
     def add_admin(self, user, session):
         user_klass, _ = UserKlass.get_or_create(user, self, session)
         user_klass.admin = True
+        return user_klass
 
     def add_teacher(self, user, session):
         user_klass, _ = UserKlass.get_or_create(user, self, session)
         user_klass.teacher = True
+        return user_klass
 
     def add_student(self, user, session):
         user_klass, _ = UserKlass.get_or_create(user, self, session)
         user_klass.student = True
+        return user_klass
 
     def remove_user(self, user: UserKlass, session):
         self.users.remove(user)
         session.delete(user)
+
+    @property
+    def invite_link(self):
+        username = config["me"].username
+        payload = f"join-klass-{abs(self.id)}"
+        return create_deep_linked_url(username, payload=payload)
+
+    @property
+    def markup(self):
+        buttons = [
+            [
+                InlineKeyboardButton(
+                    "Students", callback_data=self.cb(CallbackType.student_list)
+                )
+            ],
+            [
+                InlineKeyboardButton(
+                    "Teachers", callback_data=self.cb(CallbackType.teacher_list)
+                )
+            ],
+            [
+                InlineKeyboardButton(
+                    "Settings", self.cb(CallbackType.klass_settings)
+                )
+            ],
+        ]
+        return InlineKeyboardMarkup(buttons)
+
+    def cb(self, typ):
+        data = [typ, self.id]
+        return str(CallbackType.SEPARATOR).join(data)
+
+    @property
+    def cb_detail(self):
+        data = [CallbackType.klass_detail, self.id]
+        return str(CallbackType.SEPARATOR).join(data)
+
+    @property
+    def cb_delete(self):
+        data = [CallbackType.klass_delete, self.id]
+        return str(CallbackType.SEPARATOR).join(data)

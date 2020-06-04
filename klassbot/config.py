@@ -2,6 +2,7 @@ import os
 import sys
 import toml
 import logging
+from telegram import ParseMode
 
 default_configuration = {
     "telegram": {
@@ -11,6 +12,7 @@ default_configuration = {
         "admin": "hexatester",
         "max_inline": 10,
     },
+    "defaults": {"parse_mode": ParseMode.HTML},
     "language": {"default": "English"},
     "database": {
         "sql_uri": "sqlite://",
@@ -38,9 +40,7 @@ config_path = os.path.expanduser("~/.config/klassbot.toml")
 if not os.path.exists(config_path):
     with open(config_path, "w") as file_descriptor:
         toml.dump(default_configuration, file_descriptor)
-    print(
-        "Please adjust the configuration file at '~/.config/klassbot.toml'"
-    )
+    print("Please adjust the configuration file at '~/.config/klassbot.toml'")
     sys.exit(1)
 else:
     config = toml.load(config_path)

@@ -1,12 +1,12 @@
-from telegram import Update, Chat, ChatMember
+from telegram import Update
 from telegram.ext import run_async, CallbackContext
 
-from klassbot.models import User, UserKlass, Klass
-from klassbot.utils.wrappers import message_wrapper, klass_command_wrapper
+from klassbot.models import Klass, User, UserKlass
+from klassbot.utils.wrappers import private_command_wrapper, klass_command_wrapper
 
 
 @run_async
-@message_wrapper(True)
+@private_command_wrapper()
 def create(update: Update, context: CallbackContext, user: User = None):
     update.effective_message.reply_text(
         """
@@ -22,21 +22,16 @@ def create(update: Update, context: CallbackContext, user: User = None):
 
 
 @run_async
-@klass_command_wrapper(True)
-def create_klass(
+@klass_command_wrapper(False)
+def klass_id(
     update: Update,
     context: CallbackContext,
     user: UserKlass = None,
     klass: Klass = None,
 ):
-    if klass.started:
+    if not klass.started:
         return
-    chat: Chat = update.effective_chat
-    chat_member: ChatMember = chat.get_member(user.user_id)
-    if not chat_member.status == ChatMember.CREATOR:
-        return
-    if user:
-        user.from_chat(chat)
-    klass.creator = user.user
-    klass.started = True
+    update.effective_message.reply_text(
+        f"This class id : {klass.id}\nInvite link {klass.invite_link}"
+    )
     return

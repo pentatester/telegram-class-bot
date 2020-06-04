@@ -8,7 +8,7 @@ from klassbot.models import Conversation
 
 class CustomPersistence(BasePersistence):
     def __init__(
-        self, store_user_data=True, store_chat_data=True, store_bot_data=True
+        self, store_user_data=False, store_chat_data=False, store_bot_data=False
     ):
         self.store_user_data = store_user_data
         self.store_chat_data = store_chat_data
