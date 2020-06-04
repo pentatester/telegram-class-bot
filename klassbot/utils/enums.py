@@ -45,3 +45,14 @@ class CallbackType(Enum):
     # Menu
     menu_next = 61
     menu_prev = 62
+
+
+@unique
+class CallbackAction(Enum):
+    none = 0
+    accept = 1
+    cancel = 2
+    close = 3
+    page = 4
+    page_prev = 5
+    page_next = 6
