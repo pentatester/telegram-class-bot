@@ -72,14 +72,17 @@ class Klass(base):
     def add_admin(self, user, session):
         user_klass, _ = UserKlass.get_or_create(user, self, session)
         user_klass.admin = True
+        return user_klass
 
     def add_teacher(self, user, session):
         user_klass, _ = UserKlass.get_or_create(user, self, session)
         user_klass.teacher = True
+        return user_klass
 
     def add_student(self, user, session):
         user_klass, _ = UserKlass.get_or_create(user, self, session)
         user_klass.student = True
+        return user_klass
 
     def remove_user(self, user: UserKlass, session):
         self.users.remove(user)
